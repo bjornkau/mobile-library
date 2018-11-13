@@ -1,0 +1,59 @@
+Endpoints:
+
+POST
+~/library/api/book
+
+`json:"isbn"`
+
+send ISBN, return JSON with:
+
+Name
+Publisher
+publish date
+author
+genre
+number of pages
+
+
+POST
+~/library/api/author
+
+`json:"name"`
+
+send author name
+
+return 
+
+amount of books
+
+
+POST
+~/users/login
+
+send username and password
+
+return 
+ok if in db, return token
+
+~/users∕logout
+
+send username
+
+return ok
+
+
+GET
+~/users/books
+
+send token
+
+return all books read by user (lagre lokalt?)
+
+GET
+~/users/authors
+
+send token and username
+
+return list of all authors user has read book from
+
+

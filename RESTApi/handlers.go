@@ -38,3 +38,8 @@ func UserBookHandler(w http.ResponseWriter, r *http.Request) {
 func UserAuthorHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Getting authors for user")
 }
+
+//POST
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Registering user")
+}

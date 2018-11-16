@@ -15,7 +15,8 @@ func APIBookURL(isbn int) string {
 func GetBookInfo(w http.ResponseWriter, r *http.Request) {
 	var isbn ISBN
 	err := json.NewDecoder(r.Body).Decode(&isbn)
-	if err != nil {
+	if err != nil || isbn.Isbn == 0 {
+		fmt.Printf("I want to see this")
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	} else {
 		jsonResp, err := RetrieveBookInfo(isbn.Isbn)
@@ -35,7 +36,6 @@ func GetBookInfo(w http.ResponseWriter, r *http.Request) {
 
 func RetrieveBookInfo(isbn int) (jsonResp map[string]interface{}, err error) {
 	resp, err := http.Get(APIBookURL(isbn))
-
 	if err != nil {
 		return
 	} else {
@@ -44,33 +44,22 @@ func RetrieveBookInfo(isbn int) (jsonResp map[string]interface{}, err error) {
 	}
 }
 
-/*type Book struct {
-	Authors     []string `json:"authors"`
-	Subjects    []string          `json:"subjects"`
-}*/
-
 func ParseBookInfo(jsonResp map[string]interface{}, isbn int) (book Book, allIsWell bool) {
 	allIsWell = true
 	bookInfo, ok := jsonResp["ISBN:"+strconv.Itoa(isbn)].(map[string]interface{})
 	if ok {
-		//fmt.Fprint(w,info)
-		var title bool
-		var subtitle bool
-		var publishDate bool
-		var author bool
-		var subject bool
+
+		var title, subtitle, publishDate, author, subject bool
 		book.ISBN = isbn
 		book.Title, title = bookInfo["title"].(string)
 		book.Subtitle, subtitle = bookInfo["subtitle"].(string)
 		book.Pages = int(bookInfo["number_of_pages"].(float64))
 		book.PublishDate, publishDate = bookInfo["publish_date"].(string)
-		//
 		authors, author := bookInfo["authors"].([]interface{})
 		for i := 0; i < len(authors); i++ {
 			tempAuthor := authors[i].(map[string]interface{})
 			book.Authors = append(book.Authors, tempAuthor["name"].(string))
 		}
-
 		subjects, subject := bookInfo["subjects"].([]interface{})
 		for i := 0; i < len(subjects); i++ {
 			tempSubject := subjects[i].(map[string]interface{})
@@ -87,4 +76,12 @@ func ParseBookInfo(jsonResp map[string]interface{}, isbn int) (book Book, allIsW
 		return
 	}
 	return
+}
+
+func RegisterUser(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func LoginUser(w http.ResponseWriter, r *http.Request) {
+
 }

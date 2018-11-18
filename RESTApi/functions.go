@@ -29,17 +29,29 @@ func GetBookInfo(w http.ResponseWriter, r *http.Request) {
 	if err != nil || isbn.Isbn == 0 {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	} else {
-		jsonResp, err := RetrieveBookInfo(isbn.Isbn)
-		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		} else {
-			book, check := ParseBookInfo(jsonResp, isbn.Isbn)
-			if !check {
+		db := SetUpDB()
+		book, inDB := db.GetBookByISBN(isbn.Isbn)
+		if !inDB {
+			jsonResp, err := RetrieveBookInfo(isbn.Isbn)
+			if err != nil {
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			} else {
-				w.Header().Set("Content-Type", "application/json")
-				json.NewEncoder(w).Encode(book)
+				var check bool
+				book, check = ParseBookInfo(jsonResp, isbn.Isbn)
+
+				if !check {
+					http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				} else {
+					db.AddBook(book)
+					fmt.Print("Got book from API")
+					w.Header().Set("Content-Type", "application/json")
+					json.NewEncoder(w).Encode(book)
+				}
 			}
+		} else {
+			fmt.Print("Got book from DB")
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(book)
 		}
 
 	}
@@ -176,4 +188,66 @@ func FailedLoginAttempt(w http.ResponseWriter) {
 
 func ValidateToken(token []string, username string) bool {
 	return token[0] == username+"isauthorized"
+}
+
+//UserBooks writes a json containing the slice of all ISBN values of a online authorized user
+func UserBooks(w http.ResponseWriter, r *http.Request) {
+	username, uHeader := r.Header["Username"]
+	token, tHeader := r.Header["Token"]
+	if !uHeader || !tHeader || !ValidateToken(token, username[0]) {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+	} else {
+		db := SetUpDB()
+		user, found := db.GetUserByUsername(username[0])
+		if !found || !user.Status.Online {
+			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		} else {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(user.BooksISBN)
+		}
+	}
+}
+
+func RegisterUserBook(w http.ResponseWriter, r *http.Request) {
+	var register RegisterBookStruct
+	err := json.NewDecoder(r.Body).Decode(&register)
+	token, header := r.Header["Token"]
+	if err != nil {
+		fmt.Print("216")
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	} else {
+		if !header || !ValidateToken(token, register.Username) {
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		} else {
+			db := SetUpDB()
+			user, foundUser := db.GetUserByUsername(register.Username)
+			if !foundUser || !user.Status.Online {
+				http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			} else {
+				book, foundBook := db.GetBookByISBN(register.ISBN)
+				if !foundBook {
+					jsonResp, err := RetrieveBookInfo(register.ISBN)
+					if err != nil {
+						fmt.Print("231")
+						http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+					} else {
+						var check bool
+						book, check = ParseBookInfo(jsonResp, register.ISBN)
+						if !check {
+							fmt.Print("237")
+							http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+						} else {
+							db.AddBook(book)
+							fmt.Print("Got book from API")
+							user.BooksISBN = append(user.BooksISBN, register.ISBN)
+							OnlineStatusChage(user,db, true)
+						}
+					}
+				} else {
+					user.BooksISBN = append(user.BooksISBN, register.ISBN)
+					OnlineStatusChage(user,db, true)
+				}
+			}
+		}
+	}
 }

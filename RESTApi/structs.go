@@ -45,3 +45,8 @@ type RegisterStruct struct {
 type LogOutStruct struct {
 	Username string `json:"username"`
 }
+
+type RegisterBookStruct struct {
+	Username string `json:"username"`
+	ISBN     int    `json:"isbn"`
+}

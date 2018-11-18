@@ -151,8 +151,6 @@ func (db *APIMongoDB) UpdateUserStatus(user User) error {
 		panic(err)
 	}
 	defer session.Close()
-
 	err = session.DB(db.DatabaseName).C(db.UserCollectionName).Update(bson.M{"username": user.Username}, user)
-
 	return err
 }

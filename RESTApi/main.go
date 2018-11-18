@@ -8,7 +8,8 @@ func main() {
 	http.HandleFunc("/library/users/login", LoginHandler)
 	http.HandleFunc("/library/users/register", RegisterHandler)
 	http.HandleFunc("/library/users/logout", LogoutHandler)
-	http.HandleFunc("/library/users/books", BookHandler)
-	http.HandleFunc("/library/users/authors", BookHandler)
+	http.HandleFunc("/library/users/books", UserBookHandler)
+	http.HandleFunc("/library/users/authors", UserAuthorHandler)
+	http.HandleFunc("/library/users/registerbook", UserRegisterBookHandler)
 	http.ListenAndServe(":5050", nil)
 }

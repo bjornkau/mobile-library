@@ -16,17 +16,26 @@ func BookHandler(w http.ResponseWriter, r *http.Request) {
 
 //POST
 func AuthorHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Getting Author")
+	w.WriteHeader(http.StatusNotImplemented)
+	fmt.Fprintf(w, "Open Library does not have a good api for author searches")
 }
 
 //POST
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Loging in user")
+	if r.Method == http.MethodPost {
+		LoginUser(w, r)
+	} else {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+	}
 }
 
 //POST
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Loging out")
+	if r.Method == http.MethodPost {
+		LogoutUser(w, r)
+	} else {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+	}
 }
 
 //GET
@@ -41,5 +50,9 @@ func UserAuthorHandler(w http.ResponseWriter, r *http.Request) {
 
 //POST
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Registering user")
+	if r.Method == http.MethodPost {
+		RegisterUser(w, r)
+	} else {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+	}
 }

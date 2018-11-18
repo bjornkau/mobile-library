@@ -9,6 +9,7 @@ import (
 	//"reflect"
 )
 
+//SetUpDB takes returns pointer to APIMongoDB struct
 func SetUpDB() *APIMongoDB {
 	db := APIMongoDB{
 		"mongodb://127.0.0.1:27017",
@@ -19,10 +20,12 @@ func SetUpDB() *APIMongoDB {
 	return &db
 }
 
+//APIBookURL takes param isbn. Returns URL string to openlibrary.org/api
 func APIBookURL(isbn int) string {
 	return "http://openlibrary.org/api/books?bibkeys=ISBN:" + strconv.Itoa(isbn) + "&format=json&jscmd=data"
 }
 
+//GetBookInfo parses isbn from request and returns the parsed Bookinfo json
 func GetBookInfo(w http.ResponseWriter, r *http.Request) {
 	var isbn ISBN
 	err := json.NewDecoder(r.Body).Decode(&isbn)
@@ -57,16 +60,16 @@ func GetBookInfo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//RetrieveBookInfo takes param isbn. Returns map[string]interface{} with info from bookAPI
 func RetrieveBookInfo(isbn int) (jsonResp map[string]interface{}, err error) {
 	resp, err := http.Get(APIBookURL(isbn))
-	if err != nil {
-		return
-	} else {
+	if err == nil {
 		err = json.NewDecoder(resp.Body).Decode(&jsonResp)
-		return
 	}
+	return
 }
 
+//ParseBookInfo takes param map[string]interface{} and isbn. returns Book struct and status bool
 func ParseBookInfo(jsonResp map[string]interface{}, isbn int) (book Book, allIsWell bool) {
 	allIsWell = true
 	bookInfo, ok := jsonResp["ISBN:"+strconv.Itoa(isbn)].(map[string]interface{})
@@ -101,6 +104,7 @@ func ParseBookInfo(jsonResp map[string]interface{}, isbn int) (book Book, allIsW
 	return
 }
 
+//RegisterUser registers new user to db, if username is new and unique.
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var registerStruct RegisterStruct
 	err := json.NewDecoder(r.Body).Decode(&registerStruct)
@@ -122,16 +126,13 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			} else {
-				TokenReply(w, user)
+				tokenReply(w, user)
 			}
 		}
 	}
 }
 
-func TokenReply(w http.ResponseWriter, user User) {
-	w.Header().Add("Token", user.Username+"isauthorized")
-}
-
+//LoginUser checks calidates username and password. If it matches, returns token to log in.
 func LoginUser(w http.ResponseWriter, r *http.Request) {
 	var loginStruct LoginStruct
 	err := json.NewDecoder(r.Body).Decode(&loginStruct)
@@ -147,18 +148,19 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 				FailedLoginAttempt(w)
 			} else {
 				OnlineStatusChage(user, db, true)
-				TokenReply(w, user)
+				tokenReply(w, user)
 			}
 		}
 	}
 }
 
+//LogoutUser checks if user exists and is authorized. Logs out unauthorized user
 func LogoutUser(w http.ResponseWriter, r *http.Request) {
 	var loginStruct LoginStruct
 	err := json.NewDecoder(r.Body).Decode(&loginStruct)
 	token, header := r.Header["Token"]
 
-	if !header || !ValidateToken(token, loginStruct.Username) {
+	if !header || !validateToken(token, loginStruct.Username) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	} else {
 		if err != nil {
@@ -175,6 +177,7 @@ func LogoutUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//OnlineStatusChage takes param user, db and status. Updates user in db with new changes. Is used for more than just OnlineStauts changes, should be renamed
 func OnlineStatusChage(user User, db *APIMongoDB, status bool) error {
 	user.Status.Online = status
 	user.Status.TimeStamp = time.Now().Unix()
@@ -182,19 +185,16 @@ func OnlineStatusChage(user User, db *APIMongoDB, status bool) error {
 	return err
 }
 
+//FailedLoginAttempt writes errormessage back to requester
 func FailedLoginAttempt(w http.ResponseWriter) {
 	http.Error(w, "Username and password does not match database entry", http.StatusUnauthorized)
-}
-
-func ValidateToken(token []string, username string) bool {
-	return token[0] == username+"isauthorized"
 }
 
 //UserBooks writes a json containing the slice of all ISBN values of a online authorized user
 func UserBooks(w http.ResponseWriter, r *http.Request) {
 	username, uHeader := r.Header["Username"]
 	token, tHeader := r.Header["Token"]
-	if !uHeader || !tHeader || !ValidateToken(token, username[0]) {
+	if !uHeader || !tHeader || !validateToken(token, username[0]) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	} else {
 		db := SetUpDB()
@@ -208,15 +208,15 @@ func UserBooks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//RegisterUserBook registers posted book to user if online, authorized and the isbn is correct
 func RegisterUserBook(w http.ResponseWriter, r *http.Request) {
 	var register RegisterBookStruct
 	err := json.NewDecoder(r.Body).Decode(&register)
 	token, header := r.Header["Token"]
 	if err != nil {
-		fmt.Print("216")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	} else {
-		if !header || !ValidateToken(token, register.Username) {
+		if !header || !validateToken(token, register.Username) {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		} else {
 			db := SetUpDB()
@@ -228,26 +228,34 @@ func RegisterUserBook(w http.ResponseWriter, r *http.Request) {
 				if !foundBook {
 					jsonResp, err := RetrieveBookInfo(register.ISBN)
 					if err != nil {
-						fmt.Print("231")
 						http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 					} else {
 						var check bool
 						book, check = ParseBookInfo(jsonResp, register.ISBN)
 						if !check {
-							fmt.Print("237")
 							http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 						} else {
 							db.AddBook(book)
 							fmt.Print("Got book from API")
 							user.BooksISBN = append(user.BooksISBN, register.ISBN)
-							OnlineStatusChage(user,db, true)
+							OnlineStatusChage(user, db, true)
 						}
 					}
 				} else {
 					user.BooksISBN = append(user.BooksISBN, register.ISBN)
-					OnlineStatusChage(user,db, true)
+					OnlineStatusChage(user, db, true)
 				}
 			}
 		}
 	}
+}
+
+//unexported Functions
+
+func tokenReply(w http.ResponseWriter, user User) {
+	w.Header().Add("Token", user.Username+"isauthorized")
+}
+
+func validateToken(token []string, username string) bool {
+	return token[0] == username+"isauthorized"
 }

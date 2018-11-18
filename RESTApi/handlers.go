@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-//POST
+//BookHandler handles request for book information. Requires method POST
 func BookHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		GetBookInfo(w, r)
@@ -14,13 +14,13 @@ func BookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//POST
+//AuthorHandler handles request for author information. Requires method POST. NOT IMPLEMENTED
 func AuthorHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 	fmt.Fprintf(w, "Open Library does not have a good api for author searches")
 }
 
-//POST
+//LoginHandler handles login request. Requires method POST
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		LoginUser(w, r)
@@ -29,7 +29,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//POST
+//LogoutHandler handles logout request. Requires method POST
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		LogoutUser(w, r)
@@ -38,7 +38,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//GET
+//UserBookHandler handles requests for books read by user. Req uses method GET
 func UserBookHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		UserBooks(w, r)
@@ -47,7 +47,7 @@ func UserBookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//POST
+//UserRegisterBookHandler handles request for book information. Requires method POST
 func UserRegisterBookHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		RegisterUserBook(w, r)
@@ -56,13 +56,13 @@ func UserRegisterBookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//GET
+//UserAuthorHandler handles requests for author information. NOT IMPLEMENTED
 func UserAuthorHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 	fmt.Fprintf(w, "Open Library does not have a good api for author searches")
 }
 
-//POST
+//RegisterHandler handles register user requests. Requires method POST
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		RegisterUser(w, r)

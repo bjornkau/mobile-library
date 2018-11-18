@@ -7,6 +7,8 @@ import (
 )
 
 //Struct definition and init function
+
+//APIMongoDB struct stores methods and variables required for database interaction
 type APIMongoDB struct {
 	Host               string
 	DatabaseName       string
@@ -14,6 +16,7 @@ type APIMongoDB struct {
 	UserCollectionName string
 }
 
+//Init checks conection to db
 func (db *APIMongoDB) Init() {
 	session, err := mgo.Dial(db.Host)
 	if err != nil {
@@ -23,6 +26,8 @@ func (db *APIMongoDB) Init() {
 }
 
 //DB functions related to books
+
+//AddBook takes param book and adds it to database. Returns error nil when all goes well
 func (db *APIMongoDB) AddBook(b Book) error {
 	session, err := mgo.Dial(db.Host)
 	if err != nil {
@@ -39,6 +44,7 @@ func (db *APIMongoDB) AddBook(b Book) error {
 	return nil
 }
 
+//CountBooks returns integer with number of books in db, returns -1 when an error occurs
 func (db *APIMongoDB) CountBooks() int {
 	session, err := mgo.Dial(db.Host)
 	if err != nil {
@@ -53,6 +59,7 @@ func (db *APIMongoDB) CountBooks() int {
 	return count
 }
 
+//GetBookByISBN takes param isbn. Returns true if found book, and a Book struct containing found info
 func (db *APIMongoDB) GetBookByISBN(isbn int) (Book, bool) {
 	session, err := mgo.Dial(db.Host)
 	if err != nil {
@@ -68,6 +75,7 @@ func (db *APIMongoDB) GetBookByISBN(isbn int) (Book, bool) {
 	return book, found
 }
 
+//DeleteBook takes param Book. Deletes entry in db. Returns status bool
 func (db *APIMongoDB) DeleteBook(b Book) (allIsWell bool) {
 	session, err := mgo.Dial(db.Host)
 	if err != nil {
@@ -85,6 +93,7 @@ func (db *APIMongoDB) DeleteBook(b Book) (allIsWell bool) {
 
 //DB functions related to users
 
+//AddUser takes param User. Adds to db. Returns nil when all is good
 func (db *APIMongoDB) AddUser(u User) error {
 	session, err := mgo.Dial(db.Host)
 	if err != nil {
@@ -101,6 +110,7 @@ func (db *APIMongoDB) AddUser(u User) error {
 	return nil
 }
 
+//CountUsers returns integer with number of books in db, returns -1 when an error occurs
 func (db *APIMongoDB) CountUsers() int {
 	session, err := mgo.Dial(db.Host)
 	if err != nil {
@@ -115,6 +125,7 @@ func (db *APIMongoDB) CountUsers() int {
 	return count
 }
 
+//DeleteUser takes param User and removes it from db. Returns status bool
 func (db *APIMongoDB) DeleteUser(u User) (allIsWell bool) {
 	session, err := mgo.Dial(db.Host)
 	if err != nil {
@@ -130,6 +141,7 @@ func (db *APIMongoDB) DeleteUser(u User) (allIsWell bool) {
 	return
 }
 
+//GetUserByUsername takes param username. returns bool and user from db
 func (db *APIMongoDB) GetUserByUsername(username string) (User, bool) {
 	session, err := mgo.Dial(db.Host)
 	if err != nil {
@@ -145,6 +157,7 @@ func (db *APIMongoDB) GetUserByUsername(username string) (User, bool) {
 	return user, found
 }
 
+//UpdateUserStatus takes param user, updates document in db. returns error
 func (db *APIMongoDB) UpdateUserStatus(user User) error {
 	session, err := mgo.Dial(db.Host)
 	if err != nil {

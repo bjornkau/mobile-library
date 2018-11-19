@@ -12,8 +12,8 @@ import (
 //SetUpDB takes returns pointer to APIMongoDB struct
 func SetUpDB() *APIMongoDB {
 	db := APIMongoDB{
-		"mongodb://127.0.0.1:27017",
-		"libraryApp",
+		"mongodb://test:m0bile@ds141264.mlab.com:41264/mobilelibrary",
+		"mobilelibrary",
 		"books",
 		"users",
 	}

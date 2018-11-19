@@ -11,10 +11,10 @@ import (
 
 func setUpDB(t *testing.T) *APIMongoDB {
 	db := APIMongoDB{
-		"mongodb://127.0.0.1:27017",
-		"testParagliding",
-		"books",
-		"users",
+		"mongodb://test:m0bile@ds141264.mlab.com:41264/mobilelibrary",
+		"mobilelibrary",
+		"testbooks",
+		"testusers",
 	}
 
 	session, err := mgo.Dial(db.Host)

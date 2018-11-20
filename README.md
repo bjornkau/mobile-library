@@ -10,24 +10,20 @@ Book API
   
   POST
   root/library/api/book
-  Request: {"isbn":isbn_value_is_int}
   
   POST
 	root/library/api/author
-  Request: {"name":"name_of_author"}
 	
 User API
 
   POST
   root/library/users/login
-  Request: {"username":"username","password":"password"}
   
   POST
-	root/library/users/register
-  Request: {"name":"name_of_author"}
+  root/library/users/register
   
   GET
-	root/library/users/logout
+  root/library/users/logout
 	
   GET
   root/library/users/books
@@ -37,6 +33,14 @@ User API
 	
   POST
   root/library/users/registerbook
-  Request: {"name":"name_of_author"}
   
+  These calls shall be used together with a frontend that is to be developed.
+  
+  ##things that went well
+  Code was fast to develop. All calls give apropriate responses.
+  
+  ##Things that did not go well
+  I spent way to much time to working on manually parsing the json from openlibrary.
+  There was not enough time to fix the json web tokens I wanted to use for user validation.
+  Openlibrary does not have an api with information about authors, will need to look into additional sources for information
   
